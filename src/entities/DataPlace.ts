@@ -44,7 +44,7 @@ export class DataPlace {
      */
     static createKeyInAdmin1(place: IPlace): KeyFormatResult {
         const result: KeyFormatResult = {
-            validData: place && place.countryCode && place.admin1Code && place.featureCode
+            validData: !!(place && place.countryCode && place.admin1Code && place.featureCode)
         }
         if (result.validData && place.featureCode.trim().toUpperCase() !== 'ADM1') {
             result.key = DataPlace.formatKetInAdmin1(place.countryCode, place.admin1Code);
@@ -63,7 +63,7 @@ export class DataPlace {
      */
     static createKeyAdmin1(place: IPlace): KeyFormatResult {
         const result: KeyFormatResult = {
-            validData: place && place.countryCode && place.featureClass && place.featureCode
+            validData: !!(place && place.countryCode && place.featureClass && place.featureCode)
         }
         if (result.validData && place.featureClass === 'A' && place.featureCode.trim().toUpperCase() === 'ADM1') {
             result.key = DataPlace.formatKeyAdmin1(place.countryCode);
@@ -81,7 +81,7 @@ export class DataPlace {
      */
     static createKeyMain(place: IPlace): KeyFormatResult {
         const result: KeyFormatResult = {
-            validData: place && place.countryCode && place.featureClass && place.featureCode
+            validData: !!(place && place.countryCode && place.featureClass && place.featureCode)
         }
         // is place & is PPLC, PPLA or has population >= 1 mil
         if (result.validData && place.featureClass === 'P' &&

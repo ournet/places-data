@@ -1,8 +1,8 @@
 
 import { RepAccessOptions, RepUpdateData, RepUpdateOptions, DataValidationError, IAnyDictionary } from '@ournet/domain';
 import { IPlace, IOldPlaceId, IPlaceRepository, PlaceValidator } from '@ournet/places-domain';
-import { PlaceModel, OldPlaceIdModel } from './db/models';
-import { IDataPlace } from './entities';
+import { PlaceModel, OldPlaceIdModel, PLACE_ADMIN1_INDEX, PLACE_IN_ADMIN1_INDEX, PLACE_MAIN_INDEX } from './db/models';
+import { IDataPlace, DataPlace } from './entities';
 import { DataPlaceMapper } from './mappers/DataPlaceMapper';
 
 export class PlaceRepository implements IPlaceRepository {
@@ -124,7 +124,31 @@ export class PlaceRepository implements IPlaceRepository {
         throw new Error("Method not implemented.");
     }
     getAdmin1s(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-        throw new Error("Method not implemented.");
+
+        try {
+            checkParam(data, 'data', 'object');
+            checkParam(data.country, 'data.country', 'string');
+            checkParam(data.limit, 'data.limit', 'number');
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        return new Promise((resolve, reject) => {
+            const params = accessOptionsToDynamoParams<IPlace>(options);
+
+            PlaceModel
+                .query(DataPlace.formatKeyAdmin1(data.country))
+                .usingIndex(PLACE_ADMIN1_INDEX)
+                .limit(data.limit)
+                .attributes(params.AttributesToGet)
+                .descending()
+                .exec((error: Error, result: any) => {
+                    if (error) {
+                        return reject(error);
+                    }
+                    resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
+                });
+        });
     }
     getAdmin1(data: { country: string; admin1Code: string; }, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
         throw new Error("Method not implemented.");

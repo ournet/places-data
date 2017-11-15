@@ -3,10 +3,16 @@ const vogels = require('vogels');
 
 import { PlaceSchema, OldPlaceIdSchema } from './schemas';
 
-export const NAMES = ['OurnetPlace', 'OldPlaceId'];
+const PREFIX = process.env.OURNET_PLACES_TABLE_PREFIX || 'v0';
+
+export const NAMES = ['Place', 'OldPlaceId'];
+
+export const PLACE_IN_ADMIN1_INDEX = 'OurnetPlaces_InAdmin1Index';
+export const PLACE_ADMIN1_INDEX = 'OurnetPlaces_Admin1Index';
+export const PLACE_MAIN_INDEX = 'OurnetPlaces_MainIndex';
 
 export const PlaceModel = vogels.define('OurnetPlace', {
-    tableName: 'OurnetPlaces',
+    tableName: [PREFIX, 'OurnetPlaces'].join('_'),
     hashKey: 'id',
     schema: PlaceSchema,
     timestamps: false,
@@ -14,25 +20,27 @@ export const PlaceModel = vogels.define('OurnetPlace', {
         hashKey: 'keyInAdmin1',
         rangeKey: 'population',
         type: 'global',
-        name: 'OurnetPlaces_InAdmin1Index',
+        name: PLACE_IN_ADMIN1_INDEX,
         projection: {
-            id: 'id',
-            keyInAdmin1: 'keyInAdmin1',
-            population: 'population',
-            name: 'name',
-            names: 'names',
-            asciiname: 'asciiname'
+            NonKeyAttributes: [
+                'id',
+                'keyInAdmin1',
+                'population',
+                'name',
+                'names',
+                'asciiname'],
+            ProjectionType: 'INCLUDE'
         }
     }, {
         hashKey: 'keyAdmin1',
         rangeKey: 'admin1Code',
         type: 'global',
-        name: 'OurnetPlaces_Admin1Index'
+        name: PLACE_ADMIN1_INDEX
     }, {
         hashKey: 'keyMain',
         rangeKey: 'population',
         type: 'global',
-        name: 'OurnetPlaces_MainIndex'
+        name: PLACE_MAIN_INDEX
     }]
 });
 
