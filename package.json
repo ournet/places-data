@@ -36,7 +36,8 @@
   },
   "homepage": "https://github.com/Ournet/places-data",
   "dependencies": {
-    "joi": "^13.0.2"
+    "joi": "^13.0.2",
+    "vogels": "^2.2.0"
   },
   "devDependencies": {
     "@types/joi": "^13.0.0",
