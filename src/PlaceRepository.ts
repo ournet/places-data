@@ -1,4 +1,6 @@
 
+const debug = require('debug')('ournet-places-data');
+
 import { RepAccessOptions, RepUpdateData, RepUpdateOptions, DataValidationError, IAnyDictionary } from '@ournet/domain';
 import { IPlace, IOldPlaceId, IPlaceRepository, PlaceValidator } from '@ournet/places-domain';
 import { PlaceModel, OldPlaceIdModel, PLACE_ADMIN1_INDEX, PLACE_IN_ADMIN1_INDEX, PLACE_MAIN_INDEX } from './db/models';
@@ -54,7 +56,7 @@ export class PlaceRepository implements IPlaceRepository {
                 if (error) {
                     return reject(error);
                 }
-                resolve(result && result.map(item => <IDataPlace>item.get()));
+                resolve(result && result.map(item => <IDataPlace>item.get()) || []);
             });
         });
     }
@@ -70,7 +72,8 @@ export class PlaceRepository implements IPlaceRepository {
                 if (error) {
                     return reject(error);
                 }
-                resolve(result && !!result.get());
+
+                resolve(!!result);
             });
         });
     }
@@ -87,6 +90,8 @@ export class PlaceRepository implements IPlaceRepository {
 
             const dataPlace = DataPlaceMapper.transform(data);
 
+            debug('creating place: ', dataPlace);
+
             PlaceModel.create(dataPlace, params, (error: Error, result: any) => {
                 if (error) {
                     return reject(error);
@@ -96,10 +101,8 @@ export class PlaceRepository implements IPlaceRepository {
         });
     }
     update(data: RepUpdateData<IPlace>, options?: RepUpdateOptions<IPlace>): Promise<IPlace> {
-        try {
-            PlaceValidator.instance.update(data);
-        } catch (e) {
-            return Promise.reject(e);
+        if (data && data.item) {
+            data.item.updatedAt = Math.round(Date.now() / 1000);
         }
 
         return new Promise((resolve, reject) => {
@@ -110,6 +113,12 @@ export class PlaceRepository implements IPlaceRepository {
 
             if (data.delete && data.delete.length) {
                 data.delete.forEach(item => dataPlace[item] = null);
+            }
+
+            try {
+                PlaceValidator.instance.update({ item: dataPlace });
+            } catch (e) {
+                return reject(e);
             }
 
             PlaceModel.update(dataPlace, params, (error: Error, result: any) => {
@@ -136,25 +145,113 @@ export class PlaceRepository implements IPlaceRepository {
         return new Promise((resolve, reject) => {
             const params = accessOptionsToDynamoParams<IPlace>(options);
 
-            PlaceModel
+            let query = PlaceModel
                 .query(DataPlace.formatKeyAdmin1(data.country))
                 .usingIndex(PLACE_ADMIN1_INDEX)
                 .limit(data.limit)
-                .attributes(params.AttributesToGet)
-                .descending()
-                .exec((error: Error, result: any) => {
-                    if (error) {
-                        return reject(error);
-                    }
-                    resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
-                });
+                .descending();
+
+            if (params.AttributesToGet) {
+                query = query.attributes(params.AttributesToGet);
+            }
+
+            query.exec((error: Error, result: any) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
+            });
         });
     }
     getAdmin1(data: { country: string; admin1Code: string; }, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
-        throw new Error("Method not implemented.");
+        try {
+            checkParam(data, 'data', 'object');
+            checkParam(data.country, 'data.country', 'string');
+            checkParam(data.admin1Code, 'data.admin1Code', 'string');
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        return new Promise((resolve, reject) => {
+            const params = accessOptionsToDynamoParams<IPlace>(options);
+
+            let query = PlaceModel
+                .query(DataPlace.formatKeyAdmin1(data.country))
+                .usingIndex(PLACE_ADMIN1_INDEX)
+                .where('admin1Code').equals(data.admin1Code);
+            if (params.AttributesToGet) {
+                query = query.attributes(params.AttributesToGet);
+            }
+            query.exec((error: Error, result: any) => {
+                if (error) {
+                    return reject(error);
+                }
+                result = result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || [];
+
+                resolve(result.length && result[0] || null);
+            });
+        });
     }
     getPlacesInAdmin1(data: { country: string; admin1Code: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-        throw new Error("Method not implemented.");
+        try {
+            checkParam(data, 'data', 'object');
+            checkParam(data.country, 'data.country', 'string');
+            checkParam(data.admin1Code, 'data.admin1Code', 'string');
+            checkParam(data.limit, 'data.limit', 'number');
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        return new Promise((resolve, reject) => {
+            const params = accessOptionsToDynamoParams<IPlace>(options);
+
+            let query = PlaceModel
+                .query(DataPlace.formatKetInAdmin1(data.country, data.admin1Code))
+                .usingIndex(PLACE_IN_ADMIN1_INDEX)
+                .limit(data.limit)
+                .descending();
+
+            if (params.AttributesToGet) {
+                query = query.attributes(params.AttributesToGet);
+            }
+
+            query.exec((error: Error, result: any) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
+            });
+        });
+    }
+    getMainPlaces(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
+        try {
+            checkParam(data, 'data', 'object');
+            checkParam(data.country, 'data.country', 'string');
+            checkParam(data.limit, 'data.limit', 'number');
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
+        return new Promise((resolve, reject) => {
+            const params = accessOptionsToDynamoParams<IPlace>(options);
+
+            let query = PlaceModel
+                .query(DataPlace.formatKeyMain(data.country))
+                .usingIndex(PLACE_MAIN_INDEX)
+                .limit(data.limit)
+                .descending();
+
+            if (params.AttributesToGet) {
+                query = query.attributes(params.AttributesToGet);
+            }
+
+            query.exec((error: Error, result: any) => {
+                if (error) {
+                    return reject(error);
+                }
+                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
+            });
+        });
     }
     getOldPlaceId(id: number): Promise<IOldPlaceId> {
         try {
