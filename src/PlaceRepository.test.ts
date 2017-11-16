@@ -2,11 +2,16 @@
 // require('dotenv').load();
 
 import test from 'ava';
+import { stub } from 'sinon';
 import { PlaceRepository } from './PlaceRepository';
 import { DbConfig, createDbTables } from './db';
-import { IPlace } from '../../places-domain/types/entities/Place';
+import { IPlace } from '@ournet/places-domain';
 const DynamoDB = require('aws-sdk').DynamoDB;
 const DYNAMO_PORT = 8001;
+
+process.env.AWS_ACCESS_KEY_ID = '1'
+process.env.AWS_SECRET_ACCESS_KEY = '1'
+process.env.AWS_REGION = 'eu-central-1'
 
 DbConfig.db(new DynamoDB({
     endpoint: 'http://localhost:' + DYNAMO_PORT,
@@ -32,10 +37,22 @@ test.after.always(async () => {
     await DynamoDbLocal.stop(DYNAMO_PORT);
 });
 
-const repository = new PlaceRepository({ esHosts: [''] });
+const repository = new PlaceRepository({ esHosts: ['http://localhost:9001'] });
 
 const placeId1: IPlace = { id: 1, name: 'Name 1 ', asciiname: 'Name 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'P', featureCode: 'PPL', timezone: 'TZ', admin1Code: 'VS', population: 1000000 };
 const adm1Id1: IPlace = { id: 10, name: 'Admin 1 ', asciiname: 'Admin 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'A', featureCode: 'ADM1', timezone: 'TZ', admin1Code: 'VS' };
+
+// type NodeCallback = (error: Error, result?: any) => never;
+
+stub(repository['searchService']['client'], 'create').callsFake(function (params: any) {
+    // console.log('create params', params);
+    return Promise.resolve(true);
+});
+
+stub(repository['searchService']['client'], 'delete').callsFake(function (params: any) {
+    // console.log('delete params', params);
+    return Promise.resolve(true);
+});
 
 test('#create', async t => {
     await t.throws(repository.create({ id: 1 }), /"name" is required/, '"name" is required');

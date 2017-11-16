@@ -10,6 +10,8 @@ import { BasePlaceRepository } from './BasePlaceRepository';
 import { PlaceSearchService } from './PlaceSearchService';
 
 export class PlaceRepository extends BasePlaceRepository implements IPlaceRepository {
+    // for tests
+    [name: string]: any
     private searchService: PlaceSearchService
 
     constructor(options: { esHosts: string[] }) {
@@ -29,7 +31,11 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
         return super.update(data, options)
             .then(place => {
                 return this.getById(place.id)
-                    .then(dataPlace => this.searchService.update(dataPlace))
+                    .then(dataPlace => {
+                        return this.searchService.delete(dataPlace.id)
+                            .catch()
+                            .then(() => this.searchService.create(dataPlace));
+                    })
                     .then(() => place);
             });
     }
@@ -41,7 +47,7 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
     }
 
     search(data: { query: string; country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-        throw new Error("Method not implemented.");
+        return this.searchService.search(data);
     }
     getAdmin1s(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
 

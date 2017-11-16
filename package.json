@@ -6,7 +6,7 @@
   "types": "./types/index.d.ts",
   "scripts": {
     "pretest": "npm run clean && npm run tsc",
-    "test": "ava --no-cache --verbose --serial lib/**/*.spec.js",
+    "test": "ava --no-cache --verbose --serial lib/**/*.test.js",
     "posttest": "npm run clean-test-code",
     "tsc": "tsc",
     "tscw": "tsc -w",
@@ -14,7 +14,7 @@
     "postversion": "git push --follow-tags",
     "prepublishOnly": "npm run tsc && npm run clean-test-code",
     "clean": "rm -fr ./lib && rm -fr ./types",
-    "clean-test-code": "rm -fr ./lib/**/*.spec.js && rm -fr ./types/**/*.spec.d.ts"
+    "clean-test-code": "rm -fr ./lib/**/*.test.js && rm -fr ./types/**/*.test.d.ts"
   },
   "engines": {
     "node": ">=4.0.0"
@@ -45,10 +45,13 @@
   "devDependencies": {
     "@types/elasticsearch": "^5.0.17",
     "@types/joi": "^13.0.0",
+    "@types/nock": "^8.2.1",
     "@types/node": "^8.x.x",
+    "@types/sinon": "^4.0.0",
     "ava": "^0.23.0",
     "debug": "^3.1.0",
     "dynamodb-local": "0.0.18",
+    "sinon": "^4.1.2",
     "typescript": "^2.6.1"
   }
 }

@@ -18,7 +18,8 @@ type SearchPlace = {
 }
 
 export class PlaceSearchService {
-
+    // for tests
+    [name: string]: any
     private client: Client
 
     constructor(options: { hosts: string[] }) {
@@ -100,7 +101,6 @@ export class PlaceSearchService {
             body: body
         }).then(getPlaces);
     }
-
 }
 
 function getPlaces(response: any) {
