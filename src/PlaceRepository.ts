@@ -1,14 +1,44 @@
 
 // const debug = require('debug')('ournet-places-data');
 
-import { RepAccessOptions } from '@ournet/domain';
+import { RepAccessOptions, RepUpdateOptions, RepUpdateData } from '@ournet/domain';
 import { IPlace, IOldPlaceId, IPlaceRepository } from '@ournet/places-domain';
 import { PlaceModel, OldPlaceIdModel, PLACE_ADMIN1_INDEX, PLACE_IN_ADMIN1_INDEX, PLACE_MAIN_INDEX } from './db/models';
 import { IDataPlace, DataPlace } from './entities';
 import { checkParam, accessOptionsToDynamoParams } from './helpers';
 import { BasePlaceRepository } from './BasePlaceRepository';
+import { PlaceSearchService } from './PlaceSearchService';
 
 export class PlaceRepository extends BasePlaceRepository implements IPlaceRepository {
+    private searchService: PlaceSearchService
+
+    constructor(options: { esHosts: string[] }) {
+        super();
+
+        this.searchService = new PlaceSearchService({ hosts: options.esHosts });
+    }
+
+    create(data: IPlace, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
+        return super.create(data, options)
+            .then(place => {
+                return this.searchService.create(place).then(() => place);
+            });
+    }
+
+    update(data: RepUpdateData<IPlace>, options?: RepUpdateOptions<IPlace>): Promise<IPlace> {
+        return super.update(data, options)
+            .then(place => {
+                return this.getById(place.id)
+                    .then(dataPlace => this.searchService.update(dataPlace))
+                    .then(() => place);
+            });
+    }
+
+    delete(id: number): Promise<boolean> {
+        return super.delete(id).then(result => {
+            return this.searchService.delete(id).then(() => result);
+        });
+    }
 
     search(data: { query: string; country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
         throw new Error("Method not implemented.");

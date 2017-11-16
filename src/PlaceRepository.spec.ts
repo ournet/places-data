@@ -32,7 +32,7 @@ test.after.always(async () => {
     await DynamoDbLocal.stop(DYNAMO_PORT);
 });
 
-const repository = new PlaceRepository();
+const repository = new PlaceRepository({ esHosts: [''] });
 
 const placeId1: IPlace = { id: 1, name: 'Name 1 ', asciiname: 'Name 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'P', featureCode: 'PPL', timezone: 'TZ', admin1Code: 'VS', population: 1000000 };
 const adm1Id1: IPlace = { id: 10, name: 'Admin 1 ', asciiname: 'Admin 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'A', featureCode: 'ADM1', timezone: 'TZ', admin1Code: 'VS' };

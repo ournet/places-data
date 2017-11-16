@@ -26,6 +26,8 @@ export interface IDataPlace extends IPlace {
      * range: population
      */
     // keyPOI?: string
+
+    [name: string]: any
 }
 
 export type KeyFormatResult = {

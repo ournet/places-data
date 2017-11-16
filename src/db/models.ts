@@ -24,11 +24,11 @@ export const PlaceModel = vogels.define('OurnetPlace', {
         projection: {
             NonKeyAttributes: [
                 'id',
-                'keyInAdmin1',
-                'population',
                 'name',
                 'names',
-                'asciiname'],
+                'asciiname',
+                'featureClass',
+                'featureCode'],
             ProjectionType: 'INCLUDE'
         }
     }, {
