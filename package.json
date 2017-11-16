@@ -45,7 +45,6 @@
   "devDependencies": {
     "@types/elasticsearch": "^5.0.17",
     "@types/joi": "^13.0.0",
-    "@types/nock": "^8.2.1",
     "@types/node": "^8.x.x",
     "@types/sinon": "^4.0.0",
     "ava": "^0.23.0",
