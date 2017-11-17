@@ -4,7 +4,7 @@ import { IPlace } from '@ournet/places-domain';
 
 import { Client } from 'elasticsearch';
 
-const INDEX = 'places';
+const INDEX = 'v0_places';
 const TYPE = 'place';
 
 type SearchPlace = {
