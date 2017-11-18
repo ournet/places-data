@@ -182,6 +182,7 @@ function mapSearchPlace(place: IPlace): SearchPlace {
     };
 
     data.atonic = ([data.name].concat(data.names || [])).map(item => (atonic(item) as string)).filter((v, i, a) => a.indexOf(v) === i);
+    data.atonic = data.atonic.filter(name => name !== data.name && name !== data.asciiname && data.names && data.names.indexOf(name) < 0);
 
     if (!data.atonic.length) {
         delete data.atonic;

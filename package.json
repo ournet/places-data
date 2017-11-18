@@ -17,7 +17,7 @@
     "clean-test-code": "rm -fr ./lib/**/*.test.js && rm -fr ./types/**/*.test.d.ts"
   },
   "engines": {
-    "node": ">=4.0.0"
+    "node": ">=6.0.0"
   },
   "repository": {
     "type": "git",
@@ -36,6 +36,8 @@
   },
   "homepage": "https://github.com/Ournet/places-data",
   "dependencies": {
+    "@ournet/domain": "^0.1.0",
+    "@ournet/places-domain": "^0.1.0",
     "atonic": "^1.0.4",
     "elasticsearch": "^14.0.0",
     "joi": "^13.0.2",
