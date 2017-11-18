@@ -5,7 +5,7 @@ import { IPlace } from '@ournet/places-domain';
 import { Client } from 'elasticsearch';
 
 const INDEX = 'v0_places';
-const TYPE = 'place';
+const TYPE = 'v0_place';
 
 type SearchPlace = {
     id: number
@@ -22,10 +22,10 @@ export class PlaceSearchService {
     [name: string]: any
     private client: Client
 
-    constructor(options: { hosts: string[] }) {
+    constructor(options: { host: string }) {
         this.client = new Client({
-            hosts: options.hosts,
-            connectionClass: require('http-aws-es'),
+            host: options.host,
+            // connectionClass: require('http-aws-es'),
             requestTimeout: 1000 * 5
         });
     }

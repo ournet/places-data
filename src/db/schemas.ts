@@ -20,7 +20,7 @@ export const PlaceSchema = {
     admin1Code: Joi.string().trim().min(1).max(10),
     admin2Code: Joi.string().trim().min(1).max(10),
     admin3Code: Joi.string().trim().min(1).max(10),
-    population: Joi.number().integer().positive(),
+    population: Joi.number().integer().min(0),
     elevation: Joi.number(),
     dem: Joi.number(),
     timezone: Joi.string().required(),
