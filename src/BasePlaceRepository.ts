@@ -1,5 +1,5 @@
 
-const debug = require('debug')('ournet-places-data');
+// const debug = require('debug')('ournet-places-data');
 
 import { RepAccessOptions, RepUpdateData, RepUpdateOptions, IRepository } from '@ournet/domain';
 import { IPlace, PlaceValidator } from '@ournet/places-domain';
@@ -17,11 +17,11 @@ export class BasePlaceRepository implements IRepository<number, IPlace> {
         }
 
         return new Promise((resolve, reject) => {
-            PlaceModel.destroy(id, { ReturnValues: true }, (error: Error, result: any) => {
+            PlaceModel.destroy(id, (error: Error) => {
                 if (error) {
                     return reject(error);
                 }
-                resolve(!!result);
+                resolve(true);
             });
         });
     }
@@ -91,7 +91,7 @@ export class BasePlaceRepository implements IRepository<number, IPlace> {
 
             const dataPlace = DataPlaceMapper.transform(data);
 
-            debug('creating place: ', dataPlace);
+            // debug('creating place: ', dataPlace);
 
             PlaceModel.create(dataPlace, params, (error: Error, result: any) => {
                 if (error) {
@@ -106,21 +106,23 @@ export class BasePlaceRepository implements IRepository<number, IPlace> {
             data.item.updatedAt = Math.round(Date.now() / 1000);
         }
 
+        try {
+            PlaceValidator.instance.update(data);
+        } catch (e) {
+            return Promise.reject(e);
+        }
+
         return new Promise((resolve, reject) => {
             const params = accessOptionsToDynamoParams<IPlace>(options);
             params.expected = { id: data.item.id };
 
-            const dataPlace = DataPlaceMapper.transform(data.item);
+            let dataPlace = <IPlace>Object.assign({}, data.item);// DataPlaceMapper.transform(data.item);
 
             if (data.delete && data.delete.length) {
                 data.delete.forEach(item => dataPlace[item] = null);
             }
 
-            try {
-                PlaceValidator.instance.update({ item: dataPlace });
-            } catch (e) {
-                return reject(e);
-            }
+            dataPlace = DataPlaceMapper.transform(dataPlace);
 
             PlaceModel.update(dataPlace, params, (error: Error, result: any) => {
                 if (error) {

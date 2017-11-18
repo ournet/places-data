@@ -14,10 +14,14 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
     [name: string]: any
     private searchService: PlaceSearchService
 
-    constructor(options: { esHost: string }) {
+    constructor(options: { esOptions: any }) {
         super();
 
-        this.searchService = new PlaceSearchService({ host: options.esHost });
+        this.searchService = new PlaceSearchService(options.esOptions);
+    }
+
+    init() {
+        return this.searchService.init();
     }
 
     create(data: IPlace, options?: RepAccessOptions<IPlace>): Promise<IPlace> {

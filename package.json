@@ -36,6 +36,7 @@
   },
   "homepage": "https://github.com/Ournet/places-data",
   "dependencies": {
+    "atonic": "^1.0.4",
     "elasticsearch": "^14.0.0",
     "joi": "^13.0.2",
     "vogels": "^2.2.0"

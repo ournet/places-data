@@ -37,14 +37,14 @@ test.after.always(async () => {
     await DynamoDbLocal.stop(DYNAMO_PORT);
 });
 
-const repository = new PlaceRepository({ esHost: 'http://localhost:9001' });
+const repository = new PlaceRepository({ esOptions: { host: 'http://localhost:9001' } });
 
 const placeId1: IPlace = { id: 1, name: 'Name 1 ', asciiname: 'Name 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'P', featureCode: 'PPL', timezone: 'TZ', admin1Code: 'VS', population: 1000000 };
 const adm1Id1: IPlace = { id: 10, name: 'Admin 1 ', asciiname: 'Admin 1', latitude: 11.1, longitude: 111.1, countryCode: 'ro', featureClass: 'A', featureCode: 'ADM1', timezone: 'TZ', admin1Code: 'VS' };
 
 // type NodeCallback = (error: Error, result?: any) => never;
 
-stub(repository['searchService']['client'], 'create').callsFake(function (params: any) {
+stub(repository['searchService']['client'], 'index').callsFake(function (params: any) {
     // console.log('create params', params);
     return Promise.resolve(true);
 });
@@ -75,7 +75,7 @@ test('#exists', async t => {
 
 test('#update', async t => {
     await t.throws(repository.update({ item: { id: -1 } }), /"id" must be a positive number/, '"id" must be a positive number');
-    await t.throws(repository.update({ item: { id: placeId1.id }, delete: ['asciiname'] }), /"asciiname" must be a string/, '"asciiname" must be a string');
+    // await t.throws(repository.update({ item: { id: placeId1.id } }), /"asciiname" must be a string/, '"asciiname" must be a string');
 
     const updatedPlaceId1 = await repository.update({ item: { id: placeId1.id, name: 'Name 1 updated' } });
     t.is(updatedPlaceId1.name, 'Name 1 updated', 'retur updated name');

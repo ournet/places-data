@@ -1,4 +1,7 @@
 
+const debug = require('debug')('ournet-places-data');
+
+const atonic = require('atonic');
 import { IAnyDictionary } from '@ournet/domain';
 import { IPlace } from '@ournet/places-domain';
 
@@ -14,6 +17,7 @@ type SearchPlace = {
     asciiname: string
     names: string[]
     admin1Code: string
+    atonic: string[]
     [name: string]: any
 }
 
@@ -22,19 +26,19 @@ export class PlaceSearchService {
     [name: string]: any
     private client: Client
 
-    constructor(options: { host: string }) {
-        this.client = new Client({
-            host: options.host,
-            // connectionClass: require('http-aws-es'),
-            requestTimeout: 1000 * 5
-        });
+    constructor(esOptions: any) {
+        this.client = new Client(esOptions);
     }
 
     create(place: IPlace): Promise<boolean> {
-        return this.client.create({
+        const body = mapSearchPlace(place);
+        delete body.id;
+
+        return this.client.index({
             index: INDEX,
             type: TYPE,
-            body: mapSearchPlace(place)
+            id: place.id.toString(),
+            body: body
         }).then(doc => doc.created);
     }
 
@@ -72,7 +76,7 @@ export class PlaceSearchService {
                     'query': {
                         'multi_match': {
                             'query': params.query,
-                            'fields': ['name', 'asciiname', 'names']
+                            'fields': ['name', 'asciiname', 'names', 'atonic']
                         }
                     }
                 }
@@ -101,6 +105,48 @@ export class PlaceSearchService {
             body: body
         }).then(getPlaces);
     }
+
+    init(): Promise<boolean> {
+        return this.client.indices.exists({
+            index: INDEX
+        })
+            .then((exists: boolean) => {
+                debug(`index ${INDEX} exists: ${exists}`);
+                if (exists) {
+                    return exists;
+                }
+                return this.client.indices.create(
+                    {
+                        index: INDEX,
+                        body: {
+                            "mappings": {
+                                'v0_place': {
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        },
+                                        "countryCode": {
+                                            "type": "string"
+                                        },
+                                        "asciiname": {
+                                            "type": "string"
+                                        },
+                                        "names": {
+                                            "type": "string"
+                                        },
+                                        "admin1Code": {
+                                            "type": "string"
+                                        },
+                                        "atonic": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }).then(() => true);
+            });
+    }
 }
 
 function getPlaces(response: any) {
@@ -112,7 +158,7 @@ function getPlaces(response: any) {
                 id: item._id,
                 name: item._source.name,
                 asciiname: item._source.asciiname,
-                names: item._source.names && item._source.names.join('|'),
+                // names: item._source.names && item._source.names.join('|'),
                 countryCode: item._source.countryCode,
                 admin1Code: item._source.admin1Code
             };
@@ -125,12 +171,21 @@ function getPlaces(response: any) {
 }
 
 function mapSearchPlace(place: IPlace): SearchPlace {
-    return {
+    const data: SearchPlace = {
         id: place.id,
         countryCode: place.countryCode,
         name: place.name,
         asciiname: place.asciiname,
-        names: place.names && place.names.split(/\|/g),
-        admin1Code: place.admin1Code
+        names: place.names && place.names.split(/\|/g).map(name => name.substr(0, name.length - 4)),
+        admin1Code: place.admin1Code,
+        atonic: []
     };
+
+    data.atonic = ([data.name].concat(data.names || [])).map(item => (atonic(item) as string)).filter((v, i, a) => a.indexOf(v) === i);
+
+    if (!data.atonic.length) {
+        delete data.atonic;
+    }
+
+    return data;
 }
