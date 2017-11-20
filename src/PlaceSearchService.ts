@@ -10,7 +10,7 @@ import { Client } from 'elasticsearch';
 const INDEX = 'v0_places';
 const TYPE = 'v0_place';
 
-type SearchPlace = {
+export type SearchPlace = {
     id: number
     countryCode: string
     name: string
@@ -170,7 +170,7 @@ function getPlaces(response: any) {
     return places;
 }
 
-function mapSearchPlace(place: IPlace): SearchPlace {
+export function mapSearchPlace(place: IPlace): SearchPlace {
     const data: SearchPlace = {
         id: place.id,
         countryCode: place.countryCode,
@@ -181,8 +181,19 @@ function mapSearchPlace(place: IPlace): SearchPlace {
         atonic: []
     };
 
+    if (data.names) {
+        data.names = data.names.filter((v, i, a) => a.indexOf(v) === i).filter(name => name !== data.name && name !== data.asciiname);
+        if (!data.names.length) {
+            delete data.names;
+        }
+    }
+
     data.atonic = ([data.name].concat(data.names || [])).map(item => (atonic(item) as string)).filter((v, i, a) => a.indexOf(v) === i);
     data.atonic = data.atonic.filter(name => name !== data.name && name !== data.asciiname && data.names && data.names.indexOf(name) < 0);
+
+    if (data.asciiname === data.name) {
+        delete data.asciiname;
+    }
 
     if (!data.atonic.length) {
         delete data.atonic;

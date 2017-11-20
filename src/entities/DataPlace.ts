@@ -87,7 +87,7 @@ export class DataPlace {
         }
         // is place & is PPLC, PPLA or has population >= 1 mil
         if (result.validData && place.featureClass === 'P' &&
-            (['PPLC', 'PPLA'].indexOf(place.featureCode.trim().toUpperCase()) > -1 || place.population && place.population >= 1000000)
+            (['PPLC', 'PPLA'].indexOf(place.featureCode.trim().toUpperCase()) > -1 || place.population && place.population >= 100000)
         ) {
             result.key = DataPlace.formatKeyMain(place.countryCode);
         }
