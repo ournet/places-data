@@ -1,6 +1,6 @@
 {
   "name": "@ournet/places-data",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Ournet places data",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
