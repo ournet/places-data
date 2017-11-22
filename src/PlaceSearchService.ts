@@ -155,7 +155,7 @@ function getPlaces(response: any) {
     if (response.hits && response.hits.total > 0) {
         response.hits.hits.forEach(function (item: any) {
             const place: IPlace = {
-                id: item._id,
+                id: parseInt(item._id),
                 name: item._source.name,
                 asciiname: item._source.asciiname,
                 // names: item._source.names && item._source.names.join('|'),
