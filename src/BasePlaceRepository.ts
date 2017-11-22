@@ -50,7 +50,7 @@ export class BasePlaceRepository implements IRepository<number, IPlace> {
             return Promise.reject(e);
         }
 
-        return new Promise((resolve, reject) => {
+        return new Promise<IPlace[]>((resolve, reject) => {
             const params = accessOptionsToDynamoParams<IPlace>(options);
 
             PlaceModel.getItems(ids, params, (error: Error, result: any[]) => {
@@ -59,7 +59,17 @@ export class BasePlaceRepository implements IRepository<number, IPlace> {
                 }
                 resolve(result && result.map(item => <IDataPlace>item.get()) || []);
             });
-        });
+        })
+            .then(items => {
+                if (!items || !items.length) {
+                    return [];
+                }
+                return items.reduce((list, place) => {
+                    const i = ids.indexOf(place.id);
+                    list[i] = place;
+                    return list;
+                }, [] as IPlace[]).filter(item => !!item);
+            });
     }
     exists(id: number): Promise<boolean> {
         try {

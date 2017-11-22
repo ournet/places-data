@@ -95,6 +95,16 @@ test('#getByIds', async t => {
     const ids200_1 = await repository.getByIds([200, placeId1.id], { fields: ['id', 'name'] });
     t.is(ids200_1.length, 1, 'Found just placeId1');
     t.is(Object.keys(ids200_1[0]).length, 2, 'Filter getByIds fields');
+
+    const orderred1 = await repository.getByIds([placeId1.id, adm1Id1.id]);
+
+    t.is(placeId1.id, orderred1[0].id, 'Placeid is first');
+    t.is(adm1Id1.id, orderred1[1].id, 'Admin1 is second');
+
+    const orderred2 = await repository.getByIds([adm1Id1.id, placeId1.id]);
+
+    t.is(placeId1.id, orderred2[1].id, 'Placeid is second');
+    t.is(adm1Id1.id, orderred2[0].id, 'Admin1 is first');
 });
 
 test('#getAdmin1s', async t => {
