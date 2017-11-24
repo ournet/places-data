@@ -2,21 +2,18 @@
 // const debug = require('debug')('ournet-places-data');
 
 import { RepAccessOptions, RepUpdateOptions, RepUpdateData } from '@ournet/domain';
-import { IPlace, IOldPlaceId, IPlaceRepository } from '@ournet/places-domain';
-import { PlaceModel, OldPlaceIdModel, PLACE_ADMIN1_INDEX, PLACE_IN_ADMIN1_INDEX, PLACE_MAIN_INDEX } from './db/models';
-import { IDataPlace, DataPlace } from './entities';
-import { checkParam, accessOptionsToDynamoParams } from './helpers';
-import { BasePlaceRepository } from './BasePlaceRepository';
+import { IPlace, IPlaceRepository, IOldPlaceId } from '@ournet/places-domain';
+import { DynamoPlaceStorage } from './DynamoPlaceStorage';
 import { PlaceSearchService } from './PlaceSearchService';
 
-export class PlaceRepository extends BasePlaceRepository implements IPlaceRepository {
+export class PlaceRepository implements IPlaceRepository {
     // for tests
     [name: string]: any
     private searchService: PlaceSearchService
+    private storage: DynamoPlaceStorage
 
     constructor(options: { esOptions: any }) {
-        super();
-
+        this.storage = new DynamoPlaceStorage();
         this.searchService = new PlaceSearchService(options.esOptions);
     }
 
@@ -25,14 +22,14 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
     }
 
     create(data: IPlace, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
-        return super.create(data, options)
+        return this.storage.create(data, options)
             .then(place => {
                 return this.searchService.create(place).then(() => place);
             });
     }
 
     update(data: RepUpdateData<IPlace>, options?: RepUpdateOptions<IPlace>): Promise<IPlace> {
-        return super.update(data, options)
+        return this.storage.update(data, options)
             .then(place => {
                 return this.getById(place.id)
                     .then(dataPlace => {
@@ -45,7 +42,7 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
     }
 
     delete(id: number): Promise<boolean> {
-        return super.delete(id).then(result => {
+        return this.storage.delete(id).then(result => {
             return this.searchService.delete(id).then(() => result);
         });
     }
@@ -53,142 +50,29 @@ export class PlaceRepository extends BasePlaceRepository implements IPlaceReposi
     search(data: { query: string; country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
         return this.searchService.search(data);
     }
+
     getAdmin1s(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-
-        try {
-            checkParam(data, 'data', 'object');
-            checkParam(data.country, 'data.country', 'string');
-            checkParam(data.limit, 'data.limit', 'number');
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return new Promise((resolve, reject) => {
-            const params = accessOptionsToDynamoParams<IPlace>(options);
-
-            let query = PlaceModel
-                .query(DataPlace.formatKeyAdmin1(data.country))
-                .usingIndex(PLACE_ADMIN1_INDEX)
-                .limit(data.limit)
-                .descending();
-
-            if (params.AttributesToGet) {
-                query = query.attributes(params.AttributesToGet);
-            }
-
-            query.exec((error: Error, result: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
-            });
-        });
+        return this.storage.getAdmin1s(data, options);
     }
     getAdmin1(data: { country: string; admin1Code: string; }, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
-        try {
-            checkParam(data, 'data', 'object');
-            checkParam(data.country, 'data.country', 'string');
-            checkParam(data.admin1Code, 'data.admin1Code', 'string');
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return new Promise((resolve, reject) => {
-            const params = accessOptionsToDynamoParams<IPlace>(options);
-
-            let query = PlaceModel
-                .query(DataPlace.formatKeyAdmin1(data.country))
-                .usingIndex(PLACE_ADMIN1_INDEX)
-                .where('admin1Code').equals(data.admin1Code);
-            if (params.AttributesToGet) {
-                query = query.attributes(params.AttributesToGet);
-            }
-            query.exec((error: Error, result: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                result = result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || [];
-
-                resolve(result.length && result[0] || null);
-            });
-        });
+        return this.storage.getAdmin1(data, options);
     }
     getPlacesInAdmin1(data: { country: string; admin1Code: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-        try {
-            checkParam(data, 'data', 'object');
-            checkParam(data.country, 'data.country', 'string');
-            checkParam(data.admin1Code, 'data.admin1Code', 'string');
-            checkParam(data.limit, 'data.limit', 'number');
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return new Promise((resolve, reject) => {
-            const params = accessOptionsToDynamoParams<IPlace>(options);
-
-            let query = PlaceModel
-                .query(DataPlace.formatKetInAdmin1(data.country, data.admin1Code))
-                .usingIndex(PLACE_IN_ADMIN1_INDEX)
-                .limit(data.limit)
-                .descending();
-
-            if (params.AttributesToGet) {
-                query = query.attributes(params.AttributesToGet);
-            }
-
-            query.exec((error: Error, result: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
-            });
-        });
-    }
-    getMainPlaces(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
-        try {
-            checkParam(data, 'data', 'object');
-            checkParam(data.country, 'data.country', 'string');
-            checkParam(data.limit, 'data.limit', 'number');
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return new Promise((resolve, reject) => {
-            const params = accessOptionsToDynamoParams<IPlace>(options);
-
-            let query = PlaceModel
-                .query(DataPlace.formatKeyMain(data.country))
-                .usingIndex(PLACE_MAIN_INDEX)
-                .limit(data.limit)
-                .descending();
-
-            if (params.AttributesToGet) {
-                query = query.attributes(params.AttributesToGet);
-            }
-
-            query.exec((error: Error, result: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(result && result.Items && result.Items.map((item: any) => <IDataPlace>item.get()) || []);
-            });
-        });
+        return this.storage.getPlacesInAdmin1(data, options);
     }
     getOldPlaceId(id: number): Promise<IOldPlaceId> {
-        try {
-            checkParam(id, 'id', 'number');
-        } catch (e) {
-            return Promise.reject(e);
-        }
-
-        return new Promise((resolve, reject) => {
-            OldPlaceIdModel.get(id, (error: Error, result: any) => {
-                if (error) {
-                    return reject(error);
-                }
-                resolve(result && <IOldPlaceId>result.get());
-            });
-        });
+        return this.storage.getOldPlaceId(id);
     }
-
+    getMainPlaces(data: { country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
+        return this.storage.getMainPlaces(data, options);
+    }
+    getById(id: number, options?: RepAccessOptions<IPlace>): Promise<IPlace> {
+        return this.storage.getById(id, options);
+    }
+    getByIds(ids: number[], options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
+        return this.storage.getByIds(ids, options);
+    }
+    exists(id: number): Promise<boolean> {
+        return this.storage.exists(id);
+    }
 }
