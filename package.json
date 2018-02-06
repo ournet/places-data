@@ -1,6 +1,6 @@
 {
   "name": "@ournet/places-data",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Ournet places data",
   "main": "./lib/index.js",
   "types": "./types/index.d.ts",
@@ -37,7 +37,7 @@
   "homepage": "https://github.com/Ournet/places-data",
   "dependencies": {
     "@ournet/domain": "^0.1.4",
-    "@ournet/places-domain": "^0.1.2",
+    "@ournet/places-domain": "^0.1.4",
     "atonic": "^1.0.4",
     "elasticsearch": "^14.0.0",
     "joi": "^13.0.2",

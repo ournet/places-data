@@ -69,7 +69,7 @@ export class PlaceSearchService {
         }).then(response => response.found);
     }
 
-    search(params: { query: string, size?: number, country?: string, type?: 'phrase_prefix' }): Promise<IPlace[]> {
+    search(params: { query: string, size?: number, country?: string, type?: string }): Promise<IPlace[]> {
         const body: IAnyDictionary = {
             'query': {
                 'filtered': {
@@ -83,8 +83,8 @@ export class PlaceSearchService {
             }
         };
 
-        if (params.type === 'phrase_prefix') {
-            body.query.filtered.query.multi_match.type = 'phrase_prefix';
+        if (params.type) {
+            body.query.filtered.query.multi_match.type = params.type;
         }
 
         if (params.size) {

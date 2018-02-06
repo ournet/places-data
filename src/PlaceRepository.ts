@@ -47,7 +47,7 @@ export class PlaceRepository implements IPlaceRepository {
         });
     }
 
-    search(data: { query: string; country: string; limit: number; }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
+    search(data: { query: string; country: string; limit: number; type?: string }, options?: RepAccessOptions<IPlace>): Promise<IPlace[]> {
         return this.searchService.search(data);
     }
 
