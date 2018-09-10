@@ -1,3 +1,2 @@
 
-export { DbConfig, createDbTables } from './db';
-export { PlaceRepository } from './PlaceRepository';
+export { PlaceRepositoryBuilder } from './place-repository-builder';
