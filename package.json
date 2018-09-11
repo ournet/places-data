@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Ournet places data",
   "main": "./lib/index.js",
-  "types": "./types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "scripts": {
     "pretest": "npm run clean && npm run tsc",
     "test": "ava --no-cache --verbose --serial lib/**/*.test.js",
