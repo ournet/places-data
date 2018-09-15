@@ -63,7 +63,7 @@ export class DynamoPlaceRepository extends BaseRepository<Place> implements Plac
             hashKey,
             rangeKey: {
                 operation: '=',
-                value: data.country,
+                value: data.admin1Code,
             },
             limit: 1,
         });
