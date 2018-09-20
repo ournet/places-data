@@ -37,7 +37,8 @@ export class DataPlaceHelper {
     static createKeyMain(place: Partial<Place>) {
         // is place & is PPLC, PPLA or has population >= 1 mil
         if (place.countryCode && place.featureClass && place.featureCode && place.featureClass === 'P' &&
-            (['PPLC', 'PPLA'].indexOf(place.featureCode.trim().toUpperCase()) > -1 || place.population && place.population >= 100000)
+            (['PPLC', 'PPLA'].includes(place.featureCode.trim().toUpperCase()) ||
+                place.population && place.population >= 100000 && ['PPL', 'PPLA2'].includes(place.featureCode.trim().toUpperCase()))
         ) {
             return DataPlaceHelper.formatKeyMain(place.countryCode);
         }
