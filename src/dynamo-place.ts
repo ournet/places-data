@@ -1,14 +1,14 @@
 
 import DynamoDB = require('aws-sdk/clients/dynamodb');
 import { DataPlace } from "./entities/data-place";
-import { DynamoModel } from 'dynamo-model';
+import { DynamoItem } from 'dynamo-item';
 import { OldPlaceId } from '@ournet/places-domain';
 
 export type PlaceItemKey = {
     id: string
 }
 
-export class DynamoPlaceModel extends DynamoModel<PlaceItemKey, DataPlace> {
+export class DynamoPlaceModel extends DynamoItem<PlaceItemKey, DataPlace> {
     static mainPlacesIndexName() {
         return 'main-places-index';
     }
@@ -73,11 +73,11 @@ export class DynamoPlaceModel extends DynamoModel<PlaceItemKey, DataPlace> {
                     }
                 }
             ]
-        }, client);
+        }, client as any);
     }
 }
 
-export class DynamoOldPlaceIdModel extends DynamoModel<{ id: number }, OldPlaceId> {
+export class DynamoOldPlaceIdModel extends DynamoItem<{ id: number }, OldPlaceId> {
     constructor(client: DynamoDB.DocumentClient) {
         super({
             hashKey: {
@@ -86,6 +86,6 @@ export class DynamoOldPlaceIdModel extends DynamoModel<{ id: number }, OldPlaceI
             },
             name: 'GeoOldIds',
             tableName: `GeoOldIds`,
-        }, client);
+        }, client as any);
     }
 }

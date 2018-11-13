@@ -36,7 +36,10 @@
   },
   "homepage": "https://github.com/Ournet/places-data",
   "dependencies": {
+    "@ournet/domain": "^0.3.3",
+    "@ournet/places-domain": "^0.2.0",
     "aws-sdk": "^2.311.0",
+    "dynamo-item": "^0.1.1",
     "elasticsearch": "^15.1.1"
   },
   "devDependencies": {
