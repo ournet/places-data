@@ -150,7 +150,7 @@ function normalizeItem(data: Place) {
     };
 
     if (item.names) {
-        item.names = uniq(PlaceHelper.parseNames(item.names).map(item => item.lang)).join('|');
+        item.names = uniq(PlaceHelper.parseNames(item.names).map(item => item.name)).join('|');
     } else {
         delete item.names;
     }
