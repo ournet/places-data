@@ -31,7 +31,7 @@ export class PlaceSearcher {
                     'query': {
                         'multi_match': {
                             'query': params.query,
-                            'fields': ['name', 'asciiname', 'names', 'atonic']
+                            'fields': ['names', 'name', 'atonic', 'asciiname']
                         }
                     }
                 }
@@ -53,7 +53,8 @@ export class PlaceSearcher {
         const response = await this.client.search<SearchItem>({
             index: ES_PLACE_INDEX,
             type: ES_PLACE_TYPE,
-            body: body
+            body: body,
+            size: params.limit,
         });
 
         return parseResponse(response);
@@ -134,7 +135,7 @@ function parseResponse(response: SearchResponse<SearchItem>): string[] {
         return [];
     }
 
-    return response.hits.hits.map((item: any) => item._source.id);
+    return uniq(response.hits.hits.map((item: any) => item._id));
 }
 
 function normalizeItem(data: Place) {
