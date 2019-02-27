@@ -91,11 +91,12 @@ export class DynamoPlaceRepository extends BaseRepository<Place> implements Plac
             segmentLimits.push(limit);
         }
 
-        const results: DynamoQueryResult<DataPlace> = { items: [], count: 0 };
+        const indexResults: DynamoQueryResult<DataPlace> = { items: [], count: 0 };
+        let results: Place[] = []
         for (const limit of segmentLimits) {
-            const lastItem = !!results.items ? results.items[results.items.length - 1] : null;
+            const lastItem = !!indexResults.items ? indexResults.items[indexResults.items.length - 1] : null;
             const startKey = !!lastItem ? ({ keyInAdmin1: lastItem.keyInAdmin1, population: lastItem.population, id: lastItem.id }) : null;
-            const result = await this.model.query({
+            const indexResult = await this.model.query({
                 index: DynamoPlaceModel.inAdmin1IndexName(),
                 hashKey,
                 limit: limit,
@@ -103,18 +104,16 @@ export class DynamoPlaceRepository extends BaseRepository<Place> implements Plac
                 startKey: startKey || undefined,
             });
 
-            if (!result.items || result.items.length === 0) {
+            if (!indexResult.items || indexResult.items.length === 0) {
                 break;
             }
-            results.items = (results.items || []).concat(result.items);
+            indexResults.items = (indexResults.items || []).concat(indexResult.items);
+            const ids = indexResult.items.map(item => item.id);
+            const result = await this.getByIds(ids, options);
+            results = results.concat(result);
         }
 
-        const ids = (results.items || []).map(item => item.id);
-
-        if (ids.length) {
-            return this.getByIds(ids, options);
-        }
-        return [];
+        return results;
     }
     getOldPlaceId(id: number) {
         return this.oldIdModel.get({ id });
