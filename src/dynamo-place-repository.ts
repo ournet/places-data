@@ -22,6 +22,8 @@ import { PlaceSearcher } from './place-searcher';
 import { DataPlaceMapper } from './entities/data-place-mapper';
 import { sortEntitiesByIds } from './helpers';
 import { DataPlaceHelper } from './entities/data-place-helper';
+import { DynamoQueryResult } from 'dynamo-item';
+import { DataPlace } from './entities/data-place';
 
 
 export class DynamoPlaceRepository extends BaseRepository<Place> implements PlaceRepository {
@@ -76,21 +78,43 @@ export class DynamoPlaceRepository extends BaseRepository<Place> implements Plac
     }
     async getPlacesInAdmin1(data: PlacesAdminData, options?: RepositoryAccessOptions<Place>): Promise<Place[]> {
         const hashKey = DataPlaceHelper.formatKetInAdmin1(data.country, data.admin1Code);
+        const maxSegment = 100;
+        const countSegments = data.limit / maxSegment + 1;
 
-        const result = await this.model.query({
-            index: DynamoPlaceModel.inAdmin1IndexName(),
-            hashKey,
-            limit: data.limit,
-            order: 'DESC',
-        });
-
-        if (!result.items || result.items.length === 0) {
-            return [];
+        const segmentLimits: number[] = [];
+        for (let i = 0; i < countSegments; i++) {
+            if (i * maxSegment >= data.limit) {
+                break;
+            }
+            const rest = data.limit - i * maxSegment;
+            const limit = rest > maxSegment ? maxSegment : rest;
+            segmentLimits.push(limit);
         }
 
-        const ids = result.items.map(item => item.id);
+        const results: DynamoQueryResult<DataPlace> = { items: [], count: 0 };
+        for (const limit of segmentLimits) {
+            const lastItem = !!results.items ? results.items[results.items.length - 1] : null;
+            const startKey = !!lastItem ? ({ keyInAdmin1: lastItem.keyInAdmin1, population: lastItem.population, id: lastItem.id }) : null;
+            const result = await this.model.query({
+                index: DynamoPlaceModel.inAdmin1IndexName(),
+                hashKey,
+                limit: limit,
+                order: 'DESC',
+                startKey: startKey || undefined,
+            });
 
-        return this.getByIds(ids, options);
+            if (!result.items || result.items.length === 0) {
+                break;
+            }
+            results.items = (results.items || []).concat(result.items);
+        }
+
+        const ids = (results.items || []).map(item => item.id);
+
+        if (ids.length) {
+            return this.getByIds(ids, options);
+        }
+        return [];
     }
     getOldPlaceId(id: number) {
         return this.oldIdModel.get({ id });
