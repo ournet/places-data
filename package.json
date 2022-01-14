@@ -1,12 +1,11 @@
 {
   "name": "@ournet/places-data",
-  "version": "0.2.4",
+  "version": "0.2.6",
   "description": "Ournet places data",
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "scripts": {
     "pretest": "npm run clean && npm run tsc",
-    "test": "ava --no-cache --verbose --serial lib/**/*.test.js",
     "posttest": "npm run clean-test-code",
     "tsc": "tsc",
     "tscw": "tsc -w",
@@ -38,17 +37,15 @@
   "dependencies": {
     "@ournet/domain": "^0.3.3",
     "@ournet/places-domain": "^0.2.0",
-    "aws-sdk": "^2.354.0",
+    "aws-sdk": "^2.1058.0",
     "dynamo-item": "^0.1.1",
-    "elasticsearch": "^15.2.0"
+    "elasticsearch": "^16.7.2"
   },
   "devDependencies": {
-    "@types/elasticsearch": "^5.0.28",
-    "@types/node": "10.12.7",
-    "ava": "^0.25.0",
+    "@types/node": "10.12.19",
+    "@types/elasticsearch": "^5.0.30",
     "debug": "^4.1.0",
-    "dynamodb-local": "^0.0.22",
     "rimraf": "^2.6.2",
-    "typescript": "3.1.6"
+    "typescript": "3.2.4"
   }
 }
