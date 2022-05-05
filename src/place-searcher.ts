@@ -20,7 +20,8 @@ export class PlaceSearcher {
   constructor(host: string) {
     this.client = new Client({
       host,
-      ssl: { rejectUnauthorized: false, pfx: [] }
+      ssl: { rejectUnauthorized: false, pfx: [] },
+      apiVersion: "5.6"
     });
   }
 
