@@ -1,2 +1,1 @@
-
-export { PlaceRepositoryBuilder } from './place-repository-builder';
+export { PlaceRepositoryBuilder } from "./place-repository-builder";

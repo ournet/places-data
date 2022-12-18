@@ -178,6 +178,16 @@ export class DynamoPlaceRepository
     return item;
   }
 
+  async innerPut(data: Place) {
+    const createdItem = await this.model.put(DataPlaceMapper.fromPlace(data));
+
+    const item = DataPlaceMapper.toPlace(createdItem);
+
+    await this.searcher.index(item);
+
+    return item;
+  }
+
   async innerUpdate(data: RepositoryUpdateData<Place>) {
     const updatedItem = await this.model.update({
       remove: data.delete,
